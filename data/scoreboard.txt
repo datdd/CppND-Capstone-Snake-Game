@@ -1,0 +1,2 @@
+Player01 : 100
+Player02 : 900

@@ -1,6 +1,10 @@
-#include "game.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+
 #include "SDL.h"
+#include "game.h"
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
@@ -11,7 +15,8 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
     Init();
 }
 
-void Game::Init() {
+void Game::Init()
+{
     PlaceFood();
     ReadScoreboard();
 }
@@ -79,7 +84,6 @@ void Game::PlaceFood()
         {
             food.x = x;
             food.y = y;
-            std::cout << "food.x: " << x << ", food.y: " << y << std::endl; // DEBUG
             return;
         }
     }
@@ -87,10 +91,15 @@ void Game::PlaceFood()
 
 void Game::Update()
 {
-    // std::cout << "offsetX: " << offsetX << ", offsetY: " << offsetY << std::endl; // DEBUG
-    if (!snake.alive)
-        return;
-
+    if (!snake.alive) {
+        int playerHealth = player.get()->GetHealth();
+        if (playerHealth >= 1) {
+            player.get()->SetHealth(playerHealth-1);
+        } else {
+            return;
+        }
+    }
+    snake.alive = true;
     snake.Update();
 
     int new_x = static_cast<int>(snake.head_x);
@@ -103,7 +112,10 @@ void Game::Update()
         PlaceFood();
         // Grow snake and increase speed.
         snake.GrowBody();
-        snake.speed += 0.02;
+        snake.speed += score % 10 == 0 ? 0.02 : 0;
+
+        player.get()->SetScore(score);
+        player.get()->SetLevel(static_cast<int>(score / 10));
     }
 }
 
@@ -112,16 +124,34 @@ int Game::GetSize() const { return snake.size; }
 
 void Game::ReadScoreboard()
 {
-    // Read scoreboard data from file or database
-    //...
+    // Open the scoreboard file
+    std::ifstream file("../data/scoreboard.txt");
 
-    // Create a Player object for each entry in the scoreboard
-    Player player1("John", 100);
-    Player player2("Jane", 50);
-    //...
+    // Check if the file is open
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open scoreboard file." << std::endl;
+        return;
+    }
 
-    // Add the Player objects to the vector
-    scores.push_back(player1);
-    scores.push_back(player2);
-    //...
+    // Read the scoreboard data from the file
+    std::string line;
+    while (std::getline(file, line))
+    {
+        // Parse the line into a Player object
+        std::istringstream iss(line);
+        std::string name;
+        int score;
+        if (std::getline(iss, name, ':') && iss >> score)
+        {
+            // Create a Player object and add it to the scores vector
+            scores.emplace_back(Player(name, score));
+        }
+    }
+    // Close the file
+    file.close();
+
+    std::sort(scores.begin(), scores.end(), [](const Player& a, const Player& b) {
+        return a.GetScore() > b.GetScore();
+    });
 }

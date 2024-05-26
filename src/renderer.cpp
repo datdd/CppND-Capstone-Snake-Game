@@ -49,6 +49,14 @@ Renderer::Renderer(const std::size_t grid_width, const std::size_t grid_height)
         std::cerr << "TTF_Error: " << TTF_GetError() << "\n";
         throw std::runtime_error("Failed to load font!");
     }
+
+    // Load food texture
+    foodTexture = std::make_unique<LTexture>(sdl_renderer, nullptr);
+    if (!foodTexture->loadFromFile("../images/food.png"))
+    {
+        std::cerr << "Error: Could not load food texture.\n";
+        throw std::runtime_error("Could not load food texture.");
+    }
 }
 
 Renderer::~Renderer()
@@ -60,7 +68,7 @@ Renderer::~Renderer()
     SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food, Player *player, std::vector<Player> const &players)
+void Renderer::Render(Snake const &snake, SDL_Point const &food, Player *player, std::vector<Player> const &scores)
 {
     // Clear screen
     SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
@@ -68,7 +76,7 @@ void Renderer::Render(Snake const snake, SDL_Point const &food, Player *player, 
     // Render Player Info panel
     RenderPlayerInfo(player);
     // Render Score Table panel
-    RenderScoreTable(players);
+    RenderScoreTable(scores);
     // Render play board
     RenderPlayBoard();
     // Render food
@@ -87,6 +95,7 @@ void Renderer::RenderPlayerInfo(Player *player)
     RenderText(sdl_renderer, font, "Name: " + player->GetName(), playerInfoPanel.x + 10, playerInfoPanel.y + 40, TEXT_COLOR);
     RenderText(sdl_renderer, font, "Level: " + std::to_string(player->GetLevel()), playerInfoPanel.x + 10, playerInfoPanel.y + 70, TEXT_COLOR);
     RenderText(sdl_renderer, font, "Score: " + std::to_string(player->GetScore()), playerInfoPanel.x + 10, playerInfoPanel.y + 100, TEXT_COLOR);
+    RenderText(sdl_renderer, font, "Health: " + std::to_string(player->GetHealth()), playerInfoPanel.x + 10, playerInfoPanel.y + 130, TEXT_COLOR);
 }
 
 void Renderer::RenderScoreTable(std::vector<Player> const &scores)
@@ -96,8 +105,9 @@ void Renderer::RenderScoreTable(std::vector<Player> const &scores)
     RenderText(sdl_renderer, font, "Score Table", scoreTablePanel.x + 10, scoreTablePanel.y + 10, TEXT_COLOR);
     for (size_t i = 0; i < scores.size(); ++i)
     {
-        RenderText(sdl_renderer, font, scores[i].GetName(), scoreTablePanel.x + 10, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
-        RenderText(sdl_renderer, font, std::to_string(scores[i].GetScore()), scoreTablePanel.x + 150, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, std::to_string(i+1), scoreTablePanel.x + 10, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, scores[i].GetName(), scoreTablePanel.x + 30, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, std::to_string(scores[i].GetScore()), scoreTablePanel.x + 200, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
     }
 }
 
@@ -109,17 +119,15 @@ void Renderer::RenderPlayBoard()
 
 void Renderer::RenderFood(SDL_Point const &food)
 {
-    SDL_Rect block;
-    block.w = playBoardPanel.w / grid_width;
-    block.h = playBoardPanel.h / grid_height;
+    // Calculate the food position on the play board
+    int x = food.x * playBoardPanel.w / grid_width + playBoardPanel.x;
+    int y = food.y * playBoardPanel.h / grid_height + playBoardPanel.y;
 
-    SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
-    block.x = food.x * block.w + playBoardPanel.x;
-    block.y = food.y * block.h + playBoardPanel.y;
-    SDL_RenderFillRect(sdl_renderer, &block);
+    // Render the food image
+    foodTexture->render(x, y, playBoardPanel.w / grid_width, playBoardPanel.h / grid_height);
 }
 
-void Renderer::RenderSnakeBody(Snake const snake)
+void Renderer::RenderSnakeBody(Snake const &snake)
 {
     SDL_Rect block;
     block.w = playBoardPanel.w / grid_width;
@@ -155,12 +163,13 @@ void Renderer::UpdateWindowTitle(int score, int fps)
 
 void Renderer::RenderText(SDL_Renderer *renderer, TTF_Font *font, const std::string &text, int x, int y, SDL_Color color)
 {
-    SDL_Surface *surface = TTF_RenderText_Solid(font, text.c_str(), color);
-    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_Rect destRect = {x, y, surface->w, surface->h};
-    SDL_RenderCopy(renderer, texture, nullptr, &destRect);
-    SDL_FreeSurface(surface);
-    SDL_DestroyTexture(texture);
+    LTexture texture(sdl_renderer, font);
+    if (!texture.loadFromRenderedText(text.c_str(), color))
+    {
+        std::cerr << "Failed to render " << text << " text!\n";
+        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
+    }
+    texture.render(x, y);
 }
 
 void Renderer::RenderPanel(SDL_Renderer *renderer, SDL_Rect &rect, SDL_Color color)

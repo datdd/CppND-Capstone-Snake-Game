@@ -1,3 +1,4 @@
+#include <iostream>
 #include "texture.h"
 
 LTexture::LTexture(SDL_Renderer *sdl_renderer, TTF_Font *font)
@@ -22,7 +23,8 @@ bool LTexture::loadFromFile(std::string path)
     SDL_Surface *loadedSurface = IMG_Load(path.c_str());
     if (loadedSurface == NULL)
     {
-        printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+        std::cerr << "Unable to load image " << path << std::endl;
+        std::cerr << "SDL_image Error: " << IMG_GetError() << std::endl;
     }
     else
     {
@@ -33,7 +35,8 @@ bool LTexture::loadFromFile(std::string path)
         newTexture = SDL_CreateTextureFromSurface(sdl_renderer, loadedSurface);
         if (newTexture == NULL)
         {
-            printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
+            std::cerr << "Unable to create texture from " << path << std::endl;
+            std::cerr << "SDL Error: " << SDL_GetError() << std::endl;
         }
         else
         {
@@ -65,7 +68,8 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
         mTexture = SDL_CreateTextureFromSurface(sdl_renderer, textSurface);
         if (mTexture == NULL)
         {
-            printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
+            std::cerr << "Unable to create texture from rendered text!" << std::endl;
+            std::cerr << "SDL_ttf: " << SDL_GetError() << std::endl;
         }
         else
         {
@@ -79,7 +83,8 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
     }
     else
     {
-        printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
+        std::cerr << "Unable to render text surface!" << std::endl;
+        std::cerr << "SDL_ttf: " << TTF_GetError() << std::endl;
     }
 
     // Return success
@@ -131,6 +136,12 @@ void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *cen
 
     // Render to screen
     SDL_RenderCopyEx(sdl_renderer, mTexture, clip, &renderQuad, angle, center, flip);
+}
+
+void LTexture::render(int x, int y, int w, int h)
+{
+    SDL_Rect rect = {x, y, w, h};
+    SDL_RenderCopyEx(sdl_renderer, mTexture, NULL, &rect, 0, NULL, SDL_FLIP_NONE);
 }
 
 int LTexture::getWidth()

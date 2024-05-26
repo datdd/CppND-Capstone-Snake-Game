@@ -12,29 +12,29 @@
 class Game
 {
 public:
-  Game(std::size_t grid_width, std::size_t grid_height);
-  void Init();
-  void Run(Controller const &controller, Renderer &renderer, std::size_t target_frame_duration);
-  void EnterPlayer(Renderer &renderer);
-  int GetScore() const;
-  int GetSize() const;
+    Game(std::size_t grid_width, std::size_t grid_height);
+    void Init();
+    void Run(Controller const &controller, Renderer &renderer, std::size_t target_frame_duration);
+    void EnterPlayer(Renderer &renderer);
+    int GetScore() const;
+    int GetSize() const;
 
 private:
-  Snake snake;
-  SDL_Point food;
-  std::unique_ptr<Player> player;
-  std::vector<Player> scores;
+    Snake snake;
+    SDL_Point food;
+    std::unique_ptr<Player> player;
+    std::vector<Player> scores;
 
-  std::random_device dev;
-  std::mt19937 engine;
-  std::uniform_int_distribution<int> random_w;
-  std::uniform_int_distribution<int> random_h;
+    std::random_device dev;
+    std::mt19937 engine;
+    std::uniform_int_distribution<int> random_w;
+    std::uniform_int_distribution<int> random_h;
 
-  int score{0};
+    int score{0};
 
-  void PlaceFood();
-  void Update();
-  void ReadScoreboard();
+    void PlaceFood();
+    void Update();
+    void ReadScoreboard();
 };
 
 #endif
