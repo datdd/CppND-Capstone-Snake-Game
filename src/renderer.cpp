@@ -21,8 +21,6 @@ Renderer::Renderer(const std::size_t grid_width, const std::size_t grid_height)
     }
 
     // Create Window
-    std::size_t screen_width = playerInfoPanel.w + playBoardPanel.w + 30;
-    std::size_t screen_height = playBoardPanel.h + 20;
     sdl_window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED,
                                   SDL_WINDOWPOS_CENTERED, screen_width,
                                   screen_height, SDL_WINDOW_SHOWN);
@@ -44,7 +42,7 @@ Renderer::Renderer(const std::size_t grid_width, const std::size_t grid_height)
     }
 
     // Create font
-    font = TTF_OpenFont("../font/lazy.ttf", 16);
+    font = TTF_OpenFont("../font/lazy.ttf", 28);
     if (nullptr == font)
     {
         std::cerr << "Failed to load font!\n";
@@ -56,6 +54,9 @@ Renderer::Renderer(const std::size_t grid_width, const std::size_t grid_height)
 Renderer::~Renderer()
 {
     SDL_DestroyWindow(sdl_window);
+    // Quit SDL subsystems
+    TTF_Quit();
+    // IMG_Quit();
     SDL_Quit();
 }
 
@@ -68,7 +69,7 @@ void Renderer::Render(Snake const snake, SDL_Point const &food, Player *player, 
     RenderPlayerInfo(player);
     // Render Score Table panel
     RenderScoreTable(players);
-
+    // Render play board
     RenderPlayBoard();
     // Render food
     RenderFood(food);
@@ -172,4 +173,123 @@ void Renderer::RenderBorder(SDL_Renderer *renderer, SDL_Rect &rect, SDL_Color co
 {
     SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
     SDL_RenderDrawRect(renderer, &rect);
+}
+
+std::string Renderer::RenderEnterPlayerWindow() {
+    bool quit = false;
+    SDL_Event e;
+    SDL_Color textColor = {0x0, 0x0, 0x0, 0xFF};
+
+    // Render the prompt
+    LTexture prompt(sdl_renderer, font);
+    if (!prompt.loadFromRenderedText("Enter your name:", textColor))
+    {
+        std::cerr << "Failed to render prompt text!\n";
+        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
+        return nullptr;
+    }
+    
+    // The current input text.
+    LTexture input(sdl_renderer, font);
+    std::string inputText = "Player 01";
+    if (!input.loadFromRenderedText(inputText.c_str(), textColor)) {
+        std::cerr << "Failed to render input text!\n";
+        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
+        return nullptr;
+    }
+
+    // Render logo
+    LTexture logo(sdl_renderer, font);
+    if (!logo.loadFromFile("../images/logo.jpg")) {
+        std::cerr << "Failed to render logo!\n";
+        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
+        return nullptr;
+    }
+
+    // Render instruction text
+    LTexture instruction(sdl_renderer, font);
+    if (!instruction.loadFromRenderedText("Instruction: Close this window to enter to the Game!", textColor)) {
+        std::cerr << "Failed to render instruction text!\n";
+        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
+        return nullptr;
+    }
+
+    // Enable text input
+    SDL_StartTextInput();
+
+    // While application is running
+    while (!quit)
+    {
+        bool renderText = false;
+        // Handle events on queue
+        while (SDL_PollEvent(&e) != 0)
+        {
+            if (e.type == SDL_QUIT)
+            {
+                quit = true;
+            }
+            else if (e.type == SDL_KEYDOWN)
+            {
+                // Handle backspace
+                if (e.key.keysym.sym == SDLK_BACKSPACE && inputText.length() > 0)
+                {
+                    inputText.pop_back();
+                    renderText = true;
+                }
+                // Handle copy
+                else if (e.key.keysym.sym == SDLK_c && SDL_GetModState() & KMOD_CTRL)
+                {
+                    SDL_SetClipboardText(inputText.c_str());
+                }
+                // Handle paste
+                else if (e.key.keysym.sym == SDLK_v && SDL_GetModState() & KMOD_CTRL)
+                {
+                    char *tempText = SDL_GetClipboardText();
+                    inputText = tempText;
+                    SDL_free(tempText);
+
+                    renderText = true;
+                }
+            }
+            else if (e.type == SDL_TEXTINPUT)
+            {
+                // Not copy or pasting
+                if (!(SDL_GetModState() & KMOD_CTRL && (e.text.text[0] == 'c' || e.text.text[0] == 'C' || e.text.text[0] == 'v' || e.text.text[0] == 'V')))
+                {
+                    inputText += e.text.text;
+                    renderText = true;
+                }
+            }
+        }
+        
+        if (renderText)
+        {
+            if (inputText != "")
+            {
+                input.loadFromRenderedText(inputText.c_str(), textColor);
+            }
+            else
+            {
+                input.loadFromRenderedText(" ", textColor);
+            }
+        }
+
+        // Clear screen
+        SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderClear(sdl_renderer);
+
+        // Render text textures
+        logo.render((screen_width - logo.getWidth()) / 2, 50);
+        prompt.render((screen_width - prompt.getWidth()) / 2, logo.getHeight() + 60);
+        input.render((screen_width - input.getWidth()) / 2, logo.getHeight() + 60 + prompt.getHeight());
+        instruction.render((screen_width - instruction.getWidth()) / 2, logo.getHeight() + 80 + prompt.getHeight() + input.getHeight());
+
+        // Update screen
+        SDL_RenderPresent(sdl_renderer);
+    }
+
+    // Disable text input
+    SDL_StopTextInput();
+
+    return inputText;
 }

@@ -2,13 +2,16 @@
 #include <iostream>
 #include "SDL.h"
 
-Game::Game(std::size_t grid_width, std::size_t grid_height, std::unique_ptr<Player> player)
+Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
-      player(std::move(player)),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1))
 {
+    Init();
+}
+
+void Game::Init() {
     PlaceFood();
     ReadScoreboard();
 }
@@ -22,7 +25,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     Uint32 frame_duration;
     int frame_count = 0;
     bool running = true;
-    
+
     while (running)
     {
         frame_start = SDL_GetTicks();
@@ -55,6 +58,12 @@ void Game::Run(Controller const &controller, Renderer &renderer,
             SDL_Delay(target_frame_duration - frame_duration);
         }
     }
+}
+
+void Game::EnterPlayer(Renderer &renderer)
+{
+    std::string name = renderer.RenderEnterPlayerWindow();
+    player = std::make_unique<Player>(name, 0, 0, 3);
 }
 
 void Game::PlaceFood()

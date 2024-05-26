@@ -15,8 +15,8 @@ int main()
     {
         Renderer renderer(kGridWidth, kGridHeight);
         Controller controller;
-        std::unique_ptr<Player> player = std::make_unique<Player>("player01", 1, 2, 3);
-        Game game(kGridWidth, kGridHeight, std::move(player));
+        Game game(kGridWidth, kGridHeight);
+        game.EnterPlayer(renderer);
         game.Run(controller, renderer, kMsPerFrame);
         std::cout << "Game has terminated successfully!\n";
         std::cout << "Score: " << game.GetScore() << "\n";

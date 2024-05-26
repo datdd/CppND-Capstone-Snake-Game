@@ -12,8 +12,10 @@
 class Game
 {
 public:
-  Game(std::size_t grid_width, std::size_t grid_height, std::unique_ptr<Player> player);
+  Game(std::size_t grid_width, std::size_t grid_height);
+  void Init();
   void Run(Controller const &controller, Renderer &renderer, std::size_t target_frame_duration);
+  void EnterPlayer(Renderer &renderer);
   int GetScore() const;
   int GetSize() const;
 
