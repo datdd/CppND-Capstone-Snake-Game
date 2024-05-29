@@ -8,6 +8,7 @@
 #include "renderer.h"
 #include "snake.h"
 #include "player.h"
+#include "AStar.h"
 
 class Game
 {
@@ -18,12 +19,15 @@ public:
     void EnterPlayer(Renderer &renderer);
     int GetScore() const;
     int GetSize() const;
+    void WriteToScoreboard();
+    void AutoPlay();
 
 private:
     Snake snake;
     SDL_Point food;
     std::unique_ptr<Player> player;
     std::vector<Player> scores;
+    AStar astar;
 
     std::random_device dev;
     std::mt19937 engine;

@@ -8,6 +8,7 @@
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
+      astar(grid_width, grid_height),
       engine(dev()),
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1))
@@ -18,6 +19,7 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
 void Game::Init()
 {
     PlaceFood();
+    AutoPlay();
     ReadScoreboard();
 }
 
@@ -30,6 +32,11 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     Uint32 frame_duration;
     int frame_count = 0;
     bool running = true;
+
+    if (nullptr == player)
+    {
+        return;
+    }
 
     while (running)
     {
@@ -68,7 +75,14 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 void Game::EnterPlayer(Renderer &renderer)
 {
     std::string name = renderer.RenderEnterPlayerWindow();
-    player = std::make_unique<Player>(name, 0, 0, 3);
+    if (name != "")
+    {
+        player = std::make_unique<Player>(name, 0, 0, 3);
+    }
+    else
+    {
+        player = nullptr;
+    }
 }
 
 void Game::PlaceFood()
@@ -91,11 +105,15 @@ void Game::PlaceFood()
 
 void Game::Update()
 {
-    if (!snake.alive) {
+    if (!snake.alive)
+    {
         int playerHealth = player.get()->GetHealth();
-        if (playerHealth >= 1) {
-            player.get()->SetHealth(playerHealth-1);
-        } else {
+        if (playerHealth >= 1)
+        {
+            player.get()->SetHealth(playerHealth - 1);
+        }
+        else
+        {
             return;
         }
     }
@@ -116,7 +134,19 @@ void Game::Update()
 
         player.get()->SetScore(score);
         player.get()->SetLevel(static_cast<int>(score / 10));
+
+        AutoPlay();
     }
+}
+
+void Game::AutoPlay()
+{
+    std::vector<Snake> snakes{snake};
+    std::queue<SDL_Point> path = astar.FindPath(snake.head_x, snake.head_y, food.x, food.y, snakes);
+    path.pop();
+    snake.path = path;
+    snake.ChangeDirection(path.front());
+    // snake.PrintPath();
 }
 
 int Game::GetScore() const { return score; }
@@ -124,34 +154,45 @@ int Game::GetSize() const { return snake.size; }
 
 void Game::ReadScoreboard()
 {
-    // Open the scoreboard file
     std::ifstream file("../data/scoreboard.txt");
-
-    // Check if the file is open
     if (!file.is_open())
     {
         std::cerr << "Error: Could not open scoreboard file." << std::endl;
         return;
     }
 
-    // Read the scoreboard data from the file
     std::string line;
     while (std::getline(file, line))
     {
-        // Parse the line into a Player object
         std::istringstream iss(line);
         std::string name;
         int score;
         if (std::getline(iss, name, ':') && iss >> score)
         {
-            // Create a Player object and add it to the scores vector
             scores.emplace_back(Player(name, score));
         }
     }
-    // Close the file
     file.close();
 
-    std::sort(scores.begin(), scores.end(), [](const Player& a, const Player& b) {
-        return a.GetScore() > b.GetScore();
-    });
+    std::sort(scores.begin(), scores.end(), [](const Player &a, const Player &b)
+              { return a.GetScore() > b.GetScore(); });
+}
+
+void Game::WriteToScoreboard()
+{
+    if (nullptr == player)
+    {
+        return;
+    }
+
+    std::ofstream file("../data/scoreboard.txt", std::ios_base::app);
+    if (!file.is_open())
+    {
+        std::cerr << "Error: Could not open scoreboard file.\n";
+        return;
+    }
+
+    file << player->GetName() << " : " << player->GetScore() << "\n";
+
+    file.close();
 }

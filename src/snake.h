@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "SDL.h"
+#include "AStar.h"
 
 class Snake
 {
@@ -33,13 +34,13 @@ public:
     }
 
     // Copy constructor
-    Snake(const Snake &other) : body(other.body), direction(other.direction)
+    Snake(const Snake &other) : head_x(other.head_x), head_y(other.head_y), body(other.body), direction(other.direction)
     {
         std::cout << "Snake copy constructor" << std::endl;
     }
 
     // Move constructor
-    Snake(Snake &&other) : body(std::move(other.body)), direction(std::move(other.direction))
+    Snake(Snake &&other) : head_x(other.head_x), head_y(other.head_y), body(std::move(other.body)), direction(std::move(other.direction))
     {
         std::cout << "Snake move constructor" << std::endl;
     }
@@ -69,9 +70,10 @@ public:
     }
 
     void Update();
-
+    void ChangeDirection(SDL_Point next_cell);
     void GrowBody();
-    bool SnakeCell(int x, int y);
+    bool SnakeCell(int x, int y) const;
+    void PrintPath();
 
     Direction direction = Direction::kUp;
 
@@ -81,6 +83,7 @@ public:
     float head_x;
     float head_y;
     std::vector<SDL_Point> body;
+    std::queue<SDL_Point> path;
 
 private:
     void UpdateHead();
