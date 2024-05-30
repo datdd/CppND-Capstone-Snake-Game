@@ -142,7 +142,23 @@ void Game::Update()
 void Game::AutoPlay()
 {
     std::vector<Snake> snakes{snake};
-    std::queue<SDL_Point> path = astar.FindPath(snake.head_x, snake.head_y, food.x, food.y, snakes);
+    std::queue<SDL_Point> path;
+
+    // Create a promise and future to get the result of astar.FindPath
+    std::promise<std::queue<SDL_Point>> promise;
+    std::future<std::queue<SDL_Point>> future = promise.get_future();
+
+    std::thread t([&]() {
+        // Lock the mutex to protect the snakes vector
+        std::unique_lock<std::mutex> lock(mtx);
+        path = astar.FindPath(snake.head_x, snake.head_y, food.x, food.y, snakes);
+        promise.set_value(path);
+    });
+    t.join();
+
+    // Get the result of astar.FindPath from the future
+    path = future.get();
+
     path.pop();
     snake.path = path;
     snake.ChangeDirection(path.front());

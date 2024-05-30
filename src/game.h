@@ -1,8 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <mutex>
+#include <thread>
+#include <future>
+
 #include <memory>
 #include <random>
+
 #include "SDL.h"
 #include "controller.h"
 #include "renderer.h"
@@ -35,6 +40,8 @@ private:
     std::uniform_int_distribution<int> random_h;
 
     int score{0};
+
+    std::mutex mtx;
 
     void PlaceFood();
     void Update();
