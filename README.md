@@ -8,14 +8,49 @@ The Capstone Project gives you a chance to integrate what you've learned through
 
 In this project, you can build your own C++ application or extend this Snake game, following the principles you have learned throughout this Nanodegree Program. This project will demonstrate that you can independently create applications using a wide range of C++ features.
 
-## Main features
+## New features
 
 1. Allow config player's name and play mode (AutoPlay mode or User mode)
 <img src="images/config.png">
 2. In AutoPlay mode, the snake will auto move to the fodd by find the shortest path using AStar algorithm.
-
 3. Display Player Information
+<img src="images/player_info.png">
 4. Display Score Board
+<img src="images/score_board.png">
+
+## Rubric Points
+### Loops, Functions, I/O
+1. The project reads data from a file and process the data, or the program writes data to a file.
+```cpp
+void Game::ReadScoreboard()
+void Game::WriteToScoreboard()
+```
+2. The project accepts user input and processes the input.
+```cpp
+std::pair<std::string, std::string> Renderer::RenderEnterPlayerWindow()
+```
+3. The project uses data structures and immutable variables.
+```cpp
+void Renderer::Render(Snake const &snake, SDL_Point const &food, Player *player, std::vector<Player> const &scores)
+```
+### Object Oriented Programming 
+4. One or more classes are added to the project with appropriate access specifiers for class members.
+5. Class constructors utilize member initialization lists.
+6. Overloaded functions allow the same function to operate on different parameters.
+### Memory Management
+7. The project makes use of references in function declarations.
+8. The project uses destructors appropriately.
+9. The project uses scope / Resource Acquisition Is Initialization (RAII) where appropriate.
+10. The project follows the Rule of 5.
+11. The project uses move semantics to move data instead of copying it, where possible.
+12. The project uses smart pointers instead of raw pointers.
+### Concurrency
+13. The project uses multithreading.
+```cpp
+void Game::AutoPlay()
+```
+14. A promise and future is used in the project.
+15. A mutex or lock is used in the project.
 
 ## Dependencies for Running Locally
 * cmake >= 3.7
