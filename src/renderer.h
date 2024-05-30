@@ -22,16 +22,19 @@ public:
     ~Renderer();
 
     void Render(Snake const &snake, SDL_Point const &food, Player *player, std::vector<Player> const &scores);
-    std::string RenderEnterPlayerWindow();
     void UpdateWindowTitle(int score, int fps);
+    
+    std::pair<std::string, std::string> RenderEnterPlayerWindow();
+    void renderTextTexture(LTexture &texture, int x, int y);
+    void renderTextTexture(LTexture &texture, LTexture &top);
 
 private:
     SDL_Window *sdl_window;
     SDL_Renderer *sdl_renderer;
     TTF_Font *font;
-    SDL_Rect playerInfoPanel = {10, 10, 250, 180};
-    SDL_Rect scoreTablePanel = {10, 210, 250, 200};
-    SDL_Rect playBoardPanel = {270, 10, 640, 640};
+    SDL_Rect playerInfoPanel = {10, 10, 300, 180};
+    SDL_Rect scoreTablePanel = {10, 210, 300, 400};
+    SDL_Rect playBoardPanel = {320, 10, 640, 640};
 
     // Snake's food
     std::unique_ptr<LTexture> foodTexture;

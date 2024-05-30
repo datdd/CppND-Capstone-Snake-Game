@@ -76,6 +76,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
             // Get image dimensions
             mWidth = textSurface->w;
             mHeight = textSurface->h;
+            text = textureText;
         }
 
         // Get rid of old surface
@@ -136,12 +137,14 @@ void LTexture::render(int x, int y, SDL_Rect *clip, double angle, SDL_Point *cen
 
     // Render to screen
     SDL_RenderCopyEx(sdl_renderer, mTexture, clip, &renderQuad, angle, center, flip);
+    rect = renderQuad;
 }
 
 void LTexture::render(int x, int y, int w, int h)
 {
-    SDL_Rect rect = {x, y, w, h};
-    SDL_RenderCopyEx(sdl_renderer, mTexture, NULL, &rect, 0, NULL, SDL_FLIP_NONE);
+    SDL_Rect renderQuad = {x, y, w, h};
+    rect = renderQuad;
+    SDL_RenderCopyEx(sdl_renderer, mTexture, NULL, &renderQuad, 0, NULL, SDL_FLIP_NONE);
 }
 
 int LTexture::getWidth()
@@ -152,4 +155,14 @@ int LTexture::getWidth()
 int LTexture::getHeight()
 {
     return mHeight;
+}
+
+SDL_Rect LTexture::getRect() {
+    return rect;
+}
+
+// Get text
+std::string LTexture::getText()
+{
+    return text;
 }

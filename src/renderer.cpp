@@ -103,11 +103,11 @@ void Renderer::RenderScoreTable(std::vector<Player> const &scores)
     RenderPanel(sdl_renderer, scoreTablePanel, {220, 220, 220, 255});
     RenderBorder(sdl_renderer, scoreTablePanel, BORDER_COLOR);
     RenderText(sdl_renderer, font, "Score Table", scoreTablePanel.x + 10, scoreTablePanel.y + 10, TEXT_COLOR);
-    for (size_t i = 0; i < scores.size(); ++i)
+    for (size_t i = 0; i < scores.size() && i < 10; ++i)
     {
-        RenderText(sdl_renderer, font, std::to_string(i+1), scoreTablePanel.x + 10, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
-        RenderText(sdl_renderer, font, scores[i].GetName(), scoreTablePanel.x + 30, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
-        RenderText(sdl_renderer, font, std::to_string(scores[i].GetScore()), scoreTablePanel.x + 200, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, std::to_string(i + 1), scoreTablePanel.x + 10, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, scores[i].GetName(), scoreTablePanel.x + 40, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
+        RenderText(sdl_renderer, font, std::to_string(scores[i].GetScore()), scoreTablePanel.x + 210, scoreTablePanel.y + 40 + i * 30, TEXT_COLOR);
     }
 }
 
@@ -184,44 +184,38 @@ void Renderer::RenderBorder(SDL_Renderer *renderer, SDL_Rect &rect, SDL_Color co
     SDL_RenderDrawRect(renderer, &rect);
 }
 
-std::string Renderer::RenderEnterPlayerWindow() {
+std::pair<std::string, std::string> Renderer::RenderEnterPlayerWindow()
+{
     bool quit = false;
+    std::string inputText;
     SDL_Event e;
     SDL_Color textColor = {0x0, 0x0, 0x0, 0xFF};
 
-    // Render the prompt
-    LTexture prompt(sdl_renderer, font);
-    if (!prompt.loadFromRenderedText("Enter your name:", textColor))
-    {
-        std::cerr << "Failed to render prompt text!\n";
-        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
-        return nullptr;
-    }
-    
-    // The current input text.
-    LTexture input(sdl_renderer, font);
-    std::string inputText = "Player 01";
-    if (!input.loadFromRenderedText(inputText.c_str(), textColor)) {
-        std::cerr << "Failed to render input text!\n";
-        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
-        return nullptr;
-    }
+    // Initialize text textures
+    LTexture nameLable(sdl_renderer, font);
+    LTexture nameTextBox(sdl_renderer, font);
 
-    // Render logo
+    LTexture autoPlayLable(sdl_renderer, font);
+    LTexture autoPlayTextBox(sdl_renderer, font);
+
     LTexture logo(sdl_renderer, font);
-    if (!logo.loadFromFile("../images/logo.jpg")) {
-        std::cerr << "Failed to render logo!\n";
-        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
-        return nullptr;
+    LTexture instruction(sdl_renderer, font);
+
+    // Load textures
+    if (!nameLable.loadFromRenderedText("Enter your name:", textColor) ||
+        !nameTextBox.loadFromRenderedText("Player 01", textColor) ||
+        !autoPlayLable.loadFromRenderedText("Auto Play:", textColor) ||
+        !autoPlayTextBox.loadFromRenderedText("Yes", textColor) ||
+        !logo.loadFromFile("../images/logo.jpg") ||
+        !instruction.loadFromRenderedText("Instruction: Close this window to enter to the Game!", textColor))
+    {
+        // Handle error
+        return std::make_pair("", "");
     }
 
-    // Render instruction text
-    LTexture instruction(sdl_renderer, font);
-    if (!instruction.loadFromRenderedText("Instruction: Close this window to enter to the Game!", textColor)) {
-        std::cerr << "Failed to render instruction text!\n";
-        std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
-        return nullptr;
-    }
+    // Initialize textboxes
+    std::vector<LTexture *> textboxes = {&nameTextBox, &autoPlayTextBox};
+    LTexture *currentTextbox = nullptr;
 
     // Enable text input
     SDL_StartTextInput();
@@ -269,17 +263,34 @@ std::string Renderer::RenderEnterPlayerWindow() {
                     renderText = true;
                 }
             }
+            else if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+
+                // Check if the user has clicked on a textbox
+                for (LTexture *textbox : textboxes)
+                {
+                    SDL_Rect rect = textbox->getRect();
+
+                    if (e.button.x >= rect.x && e.button.x <= rect.x + rect.w &&
+                        e.button.y >= rect.y && e.button.y <= rect.y + rect.h)
+                    {
+                        // Set the current textbox to the one that was clicked
+                        currentTextbox = textbox;
+                        break;
+                    }
+                }
+            }
         }
-        
-        if (renderText)
+
+        if (renderText && currentTextbox != nullptr)
         {
             if (inputText != "")
             {
-                input.loadFromRenderedText(inputText.c_str(), textColor);
+                currentTextbox->loadFromRenderedText(inputText.c_str(), textColor);
             }
             else
             {
-                input.loadFromRenderedText(" ", textColor);
+                currentTextbox->loadFromRenderedText(" ", textColor);
             }
         }
 
@@ -288,10 +299,12 @@ std::string Renderer::RenderEnterPlayerWindow() {
         SDL_RenderClear(sdl_renderer);
 
         // Render text textures
-        logo.render((screen_width - logo.getWidth()) / 2, 50);
-        prompt.render((screen_width - prompt.getWidth()) / 2, logo.getHeight() + 60);
-        input.render((screen_width - input.getWidth()) / 2, logo.getHeight() + 60 + prompt.getHeight());
-        instruction.render((screen_width - instruction.getWidth()) / 2, logo.getHeight() + 80 + prompt.getHeight() + input.getHeight());
+        renderTextTexture(logo, (screen_width - logo.getWidth()) / 2, 50);
+        renderTextTexture(nameLable, logo);
+        renderTextTexture(nameTextBox, nameLable);
+        renderTextTexture(autoPlayLable, nameTextBox);
+        renderTextTexture(autoPlayTextBox, autoPlayLable);
+        renderTextTexture(instruction, autoPlayTextBox);
 
         // Update screen
         SDL_RenderPresent(sdl_renderer);
@@ -300,5 +313,17 @@ std::string Renderer::RenderEnterPlayerWindow() {
     // Disable text input
     SDL_StopTextInput();
 
-    return inputText;
+    return std::make_pair(nameTextBox.getText(), autoPlayTextBox.getText());
+}
+
+void Renderer::renderTextTexture(LTexture &texture, int x, int y)
+{
+    texture.render(x, y);
+}
+
+void Renderer::renderTextTexture(LTexture &texture, LTexture &top)
+{
+    int x = (screen_width - texture.getWidth()) / 2;
+    int y = top.getRect().y + top.getHeight() + 10;
+    texture.render(x, y);
 }

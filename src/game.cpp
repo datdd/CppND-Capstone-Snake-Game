@@ -13,13 +13,15 @@ Game::Game(std::size_t grid_width, std::size_t grid_height)
       random_w(0, static_cast<int>(grid_width - 1)),
       random_h(0, static_cast<int>(grid_height - 1))
 {
-    Init();
+    // Init();
 }
 
 void Game::Init()
 {
     PlaceFood();
-    AutoPlay();
+    if (autoPlay) {
+        AutoPlay();
+    }
     ReadScoreboard();
 }
 
@@ -37,6 +39,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     {
         return;
     }
+
+    Init();
 
     while (running)
     {
@@ -74,14 +78,19 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 
 void Game::EnterPlayer(Renderer &renderer)
 {
-    std::string name = renderer.RenderEnterPlayerWindow();
-    if (name != "")
+    std::pair<std::string, std::string> config = renderer.RenderEnterPlayerWindow();
+    
+    if (config.first != "")
     {
-        player = std::make_unique<Player>(name, 0, 0, 3);
+        player = std::make_unique<Player>(config.first, 0, 0, 3);
     }
     else
     {
         player = nullptr;
+    }
+
+    if (config.second == "Yes" || config.second == "yes" || config.second == "YES") {
+        autoPlay = true;
     }
 }
 
@@ -135,7 +144,9 @@ void Game::Update()
         player.get()->SetScore(score);
         player.get()->SetLevel(static_cast<int>(score / 10));
 
-        AutoPlay();
+        if (autoPlay) {
+            AutoPlay();
+        }
     }
 }
 

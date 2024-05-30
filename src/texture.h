@@ -42,6 +42,11 @@ public:
     int getWidth();
     int getHeight();
 
+    SDL_Rect getRect();
+
+    // Get text
+    std::string getText();
+
 private:
     SDL_Renderer *sdl_renderer;
     TTF_Font *font;
@@ -51,6 +56,10 @@ private:
     // Image dimensions
     int mWidth;
     int mHeight;
+    SDL_Rect rect;
+
+    // Text
+    std::string text;
 };
 
 #endif // __TEXTURE_H__

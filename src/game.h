@@ -40,6 +40,7 @@ private:
     std::uniform_int_distribution<int> random_h;
 
     int score{0};
+    bool autoPlay = false;
 
     std::mutex mtx;
 
