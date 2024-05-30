@@ -204,7 +204,7 @@ std::pair<std::string, std::string> Renderer::RenderEnterPlayerWindow()
     // Load textures
     if (!nameLable.loadFromRenderedText("Enter your name:", textColor) ||
         !nameTextBox.loadFromRenderedText("Player 01", textColor) ||
-        !autoPlayLable.loadFromRenderedText("Auto Play:", textColor) ||
+        !autoPlayLable.loadFromRenderedText("Auto Play (Yes/No):", textColor) ||
         !autoPlayTextBox.loadFromRenderedText("Yes", textColor) ||
         !logo.loadFromFile("../images/logo.jpg") ||
         !instruction.loadFromRenderedText("Instruction: Close this window to enter to the Game!", textColor))

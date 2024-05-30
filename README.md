@@ -2,11 +2,20 @@
 
 This is a starter repo for the Capstone project in the [Udacity C++ Nanodegree Program](https://www.udacity.com/course/c-plus-plus-nanodegree--nd213). The code for this repo was inspired by [this](https://codereview.stackexchange.com/questions/212296/snake-game-in-c-with-sdl) excellent StackOverflow post and set of responses.
 
-<img src="snake_game.gif"/>
+<img src="images/game.png"/>
 
 The Capstone Project gives you a chance to integrate what you've learned throughout this program. This project will become an important part of your portfolio to share with current and future colleagues and employers.
 
 In this project, you can build your own C++ application or extend this Snake game, following the principles you have learned throughout this Nanodegree Program. This project will demonstrate that you can independently create applications using a wide range of C++ features.
+
+## Main features
+
+1. Allow config player's name and play mode (AutoPlay mode or User mode)
+<img src="images/config.png">
+2. In AutoPlay mode, the snake will auto move to the fodd by find the shortest path using AStar algorithm.
+
+3. Display Player Information
+4. Display Score Board
 
 ## Dependencies for Running Locally
 * cmake >= 3.7
@@ -59,3 +68,9 @@ This work is licensed under a
 [cc-by-sa]: http://creativecommons.org/licenses/by-sa/4.0/
 [cc-by-sa-image]: https://licensebuttons.net/l/by-sa/4.0/88x31.png
 [cc-by-sa-shield]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
+
+
+## Reference Document
+* [SDL Tutorials](https://wiki.libsdl.org/SDL2/Tutorials)
+* [Beginning Game Programming v2.0](https://lazyfoo.net/tutorials/SDL/index.php)
+* [SDL library in C/C++ with examples](https://www.geeksforgeeks.org/sdl-library-in-c-c-with-examples/)

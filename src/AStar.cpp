@@ -7,25 +7,17 @@ AStar::AStar(int gridWidth, int gridHeight) : gridWidth(gridWidth), gridHeight(g
 AStar::~AStar() {}
 std::queue<SDL_Point> AStar::FindPath(int startX, int startY, int goalX, int goalY, const std::vector<Snake> &snakes)
 {
-    // Create a priority queue to hold nodes to be processed
     std::priority_queue<Node *, std::vector<Node *>, CompareNodes> queue;
-
-    // Create a map to keep track of visited nodes
     std::unordered_map<int, Node *> visited;
-
-    // Create the start node
     Node *start = new Node(startX, startY, 0, Heuristic(startX, startY, goalX, goalY), nullptr);
-    queue.push(start);
-
-    // Create the goal node
     Node *goal = new Node(goalX, goalY, 0, 0, nullptr);
+    queue.push(start);
 
     while (!queue.empty())
     {
         Node *current = queue.top();
         queue.pop();
 
-        // If we've reached the goal, construct the path and return it
         if (current->x == goal->x && current->y == goal->y)
         {
             std::vector<Node *> path;
@@ -58,7 +50,6 @@ std::queue<SDL_Point> AStar::FindPath(int startX, int startY, int goalX, int goa
         visited[current->x + current->y * gridWidth] = current;
 
         // Explore neighbors
-        // Loop through current node's potential neighbors.
         for (int i = 0; i < 4; i++)
         {
             int x = current->x + delta[i][0];
@@ -70,7 +61,7 @@ std::queue<SDL_Point> AStar::FindPath(int startX, int startY, int goalX, int goa
             {
                 if (snake.SnakeCell(x, y))
                 {
-                    std::cout << __FUNCTION__ << " - There is snake here" << std::endl;
+                    // std::cout << __FUNCTION__ << " - There is snake here" << std::endl;
                     occupied = true;
                     break;
                 }
